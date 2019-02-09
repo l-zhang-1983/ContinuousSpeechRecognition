@@ -1,5 +1,4 @@
 .metadata
-bin/
 tmp/
 *.tmp
 *.bak
@@ -50,3 +49,11 @@ local.properties
 .recommenders/
 
 .DS_Store
+/wav/
+/classes/
+/bin/
+/ContinuousSpeechRecognition.iml
+/.idea/
+/.gitignore
+*.pcm
+*.wav
