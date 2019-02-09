@@ -1,6 +1,7 @@
 # ContinuousSpeechRecognition
 
-## 本工程基于 https://github.com/MedusaLeee/ContinuousSpeechRecognition 修改 在此对原作者 MedusaLeee 表示感谢
+## 本工程基于 https://github.com/MedusaLeee/ContinuousSpeechRecognition 修改 
+## 在此对原作者 MedusaLeee 表示感谢
 
 ## 以下是原README.md内容 原样保留
 
