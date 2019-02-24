@@ -58,7 +58,7 @@ local.properties
 *.pcm
 *.wav
 .idea/
-0105.wav
+01.wav
 ContinuousSpeechRecognition.iml
 all.wav
 classes/

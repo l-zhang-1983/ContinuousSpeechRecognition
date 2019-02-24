@@ -1,6 +1,9 @@
 package org.liang.voice;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import be.tarsos.dsp.SilenceDetector;
@@ -16,23 +19,42 @@ import com.iflytek.cloud.speech.SpeechRecognizer;
 import com.iflytek.cloud.speech.SpeechUtility;
 
 public class ContinuousSpeechRecognition {
-    private final String appId = "573975b6";
+    private static String appId;
     private String inputFilePath;
     private String outputFilePath;
     private OutputStreamWriter osw = null;
     private final int readLength = 4800;
     private int partTime = 10 * 1000;
+    private static int NO_AUDIO_INPUT_ERROR_CODE = 10118;
     private ConcurrentLinkedQueue<byte[]> audioQueue = new ConcurrentLinkedQueue<byte[]>();
     private boolean isRunning = false; // 识别引擎是否在执行识别
     private boolean isFinishReadFile = false; // 是否读取完文件
     private SpeechRecognizer speechRecognizer;
     private StringBuffer recognizerResult = new StringBuffer();
+    private static Properties properties;
+    private static boolean showLog;
 
-    public ContinuousSpeechRecognition(String inputFilePath, String outputFilePath) {
+    static {
+        properties = new Properties();
+        try {
+            properties.load(new FileInputStream("conf/parameters.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ContinuousSpeechRecognition(String inputFilePath) {
         this.inputFilePath = inputFilePath;
-        this.outputFilePath = outputFilePath;
+        this.outputFilePath = inputFilePath + "_识别结果_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) +  ".txt";
+
+        if (this.inputFilePath.isEmpty()) {
+
+        }
+
+        this.appId = properties.getProperty("appId");
+        this.showLog = Boolean.getBoolean(properties.getProperty("appId"));
         Setting.setShowLog(false);
-        SpeechUtility.createUtility("appid=" + this.appId);
+        SpeechUtility.createUtility("appid = " + this.appId);
         SpeechRecognizer.createRecognizer();
         speechRecognizer = SpeechRecognizer.getRecognizer();
         speechRecognizer.setParameter(SpeechConstant.DOMAIN, "iat");
@@ -43,8 +65,8 @@ public class ContinuousSpeechRecognition {
         speechRecognizer.setParameter(SpeechConstant.VAD_EOS, "10000");
     }
 
-    public ContinuousSpeechRecognition(String inputFilePath, String outputFilePath, int partTime) {
-        this(inputFilePath, outputFilePath);
+    public ContinuousSpeechRecognition(String inputFilePath, int partTime) {
+        this(inputFilePath);
         this.partTime = partTime;
     }
 
@@ -59,7 +81,7 @@ public class ContinuousSpeechRecognition {
             Thread sttThread = new Thread(runnable);
             sttThread.start();
             fis = new FileInputStream(audioFile);
-            osw = new OutputStreamWriter(new FileOutputStream(outputFilePath));
+            osw = new OutputStreamWriter(new FileOutputStream(this.outputFilePath));
             byte[] byteArr = new byte[this.readLength];
             int size = 0;
             while ((size = fis.read(byteArr)) != -1) {
@@ -172,11 +194,11 @@ public class ContinuousSpeechRecognition {
     private RecognizerListener recListener = new RecognizerListener() {
 
         public void onBeginOfSpeech() {
-            DebugLog.Log("*************开始录音*************");
+            DebugLog.Log("*************识别开始*************");
         }
 
         public void onEndOfSpeech() {
-            DebugLog.Log("************结束录音事件**************");
+            DebugLog.Log("************识别结束**************");
         }
 
         public void onVolumeChanged(int volume) {
@@ -202,9 +224,9 @@ public class ContinuousSpeechRecognition {
         }
 
         public void onError(SpeechError error) {
-            if (error.getErrorCode() == 10118) {
-                // 10118是未检测到说话,重新开始一次
-                DebugLog.Log("error: 未检测到说话,重新启动..");
+            if (error.getErrorCode() == ContinuousSpeechRecognition.NO_AUDIO_INPUT_ERROR_CODE) {
+                // 10118是未检测到语音输入 重新开始一次
+                DebugLog.Log("error: 未检测到语音输入 重新启动..");
                 speechRecognizer.startListening(recListener);
                 setIsRunning(true);
             } else {
@@ -231,9 +253,9 @@ public class ContinuousSpeechRecognition {
          * 可以自己根据readme中关于ffmpeg的介绍自己生成一个pcm编码格式的wav，放在项目中。
          * 2.构造函数第二个参数指:多长时间后开始寻找静音端点。
          */
+
         ContinuousSpeechRecognition csr = new ContinuousSpeechRecognition(
-                "all.wav",
-                "result.txt",
+                args.length >= 1 ? args[0] : "input.wav",
                 30 * 1000
         );
         csr.start();
