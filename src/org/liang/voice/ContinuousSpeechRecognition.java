@@ -177,14 +177,6 @@ public class ContinuousSpeechRecognition {
             }
             speechRecognizer.stopListening();
 
-
-            DebugLog.Log("退出.....");
-            try {
-            	// 等待2秒 将数据最终写入文件
-				Thread.sleep(2000);
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
             if (osw != null) {
                 try {
                     osw.close();
@@ -192,6 +184,8 @@ public class ContinuousSpeechRecognition {
                     e.printStackTrace();
                 }
             }
+
+            DebugLog.Log("退出.....");
         }
     };
     /**
